@@ -1,2 +1,2 @@
 for i in range(99):
-    print("Decimal: {}, Hexadecimal: {}".format(i, hex(i)))
+    print("{:d} = 0x{:x}".format(i, i))
