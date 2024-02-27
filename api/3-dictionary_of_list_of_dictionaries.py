@@ -1,39 +1,25 @@
 import json
 import requests
-import sys
 
-def get_user_info(employee_id):
-    user_response = requests.get(f"https://jsonplaceholder.typicode.com/users/{employee_id}")
-    if user_response.status_code == 200:
-        user_data = user_response.json()
-        return user_data['id'], user_data['username']
-    else:
-        return None, None
+def get_tasks_by_user(user_id):
+    url = f'https://jsonplaceholder.typicode.com/users/{user_id}/todos'
+    response = requests.get(url)
+    tasks = response.json()
+    return tasks
 
-def export_all_tasks():
-    all_tasks = {}
+def export_to_json():
+    tasks_by_user = {}
+    user_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-    for employee_id in range(1, 11):  # Assuming you have 10 employees with IDs from 1 to 10
-        user_id, username = get_user_info(employee_id)
+    for user_id in user_ids:
+        tasks = get_tasks_by_user(user_id)
+        tasks_by_user[user_id] = [
+            {"username": task["user"]["username"], "task": task["title"], "completed": task["completed"]}
+            for task in tasks
+        ]
 
-        if user_id is not None:
-            response = requests.get(f"https://jsonplaceholder.typicode.com/todos?userId={employee_id}")
-            tasks = response.json()
+    with open('todo_all_employees.json', 'w') as f:
+        json.dump(tasks_by_user, f, indent=4)
 
-            task_list = []
-            for task in tasks:
-                task_list.append({
-                    "username": username,
-                    "task": task['title'],
-                    "completed": task['completed']
-                })
-
-            all_tasks[str(user_id)] = task_list
-
-    with open('todo_all_employees.json', 'w') as jsonfile:
-        json.dump(all_tasks, jsonfile, indent=2)
-
-    print("Data has been exported to todo_all_employees.json")
-
-if __name__ == "__main__":
-    export_all_tasks()
+if __name__ == '__main__':
+    export_to_json()
