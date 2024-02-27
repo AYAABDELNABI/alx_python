@@ -1,35 +1,48 @@
-import csv
+import json
 import requests
 import sys
 
-def getEmployeeAndTodo(id):
-    id = int(id)
-    url = f"https://jsonplaceholder.typicode.com/users/{id}/todos"
-    res = requests.get(url)
-    todos = res.json()
+def get_employee_info(employee_id):
+    """
+    Retrieves employee information and exports their TODO list in JSON format.
 
-    url = f"https://jsonplaceholder.typicode.com/users/{id}"
-    res = requests.get(url)
-    employee = res.json()
+    Args:
+        employee_id (int): The ID of the employee.
 
-    completed_tasks = sum(1 for todo in todos if todo['completed'])
-    all_tasks = len(todos)
+    Returns:
+        None
+    """
+    # Get employee details
+    employee_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}"
+    response = requests.get(employee_url)
+    employee_data = response.json()
+    employee_name = employee_data.get('name')
 
-    print(f"Employee {employee['name']} is done with tasks({completed_tasks}/{all_tasks}):")
-    for todo in todos:
-        if todo['completed']:
-            print(f"\t {todo['title']}")
+    # Get employee TODO list
+    todo_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}/todos"
+    response = requests.get(todo_url)
+    todo_data = response.json()
 
-    with open(f'{id}.csv', 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
-        writer.writerow(['USER_ID', 'USERNAME', 'TASK_COMPLETED_STATUS', 'TASK_TITLE'])
-        for todo in todos:
-            writer.writerow([id, employee['name'], todo['completed'], todo['title']])
+    # Create JSON data
+    json_data = {str(employee_id): []}
+    for todo in todo_data:
+        json_data[str(employee_id)].append({
+            "task": todo.get('title'),
+            "completed": todo.get('completed'),
+            "username": employee_name
+        })
 
-if __name__ == '__main__':
+    # Export JSON data to file
+    filename = f"{employee_id}.json"
+    with open(filename, 'w') as jsonfile:
+        json.dump(json_data, jsonfile)
+
+    print(f"TODO list exported to {filename}")
+
+if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print(f"what is the id: {sys.argv[0]} EMPLOYEE_ID")
+        print("Usage: python3 export_to_JSON.py <employee_id>")
         sys.exit(1)
 
-    id = sys.argv[1]
-    getEmployeeAndTodo(id)
+    employee_id = int(sys.argv[1])
+    get_employee_info(employee_id)
