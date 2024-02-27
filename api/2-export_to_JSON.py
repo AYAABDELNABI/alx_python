@@ -2,96 +2,55 @@ import json
 import requests
 import sys
 
-def get_employee_info(employee_id):
+def get_user_info(employee_id):
     """
-    Retrieves employee information and exports their TODO list in JSON format.
-
-    Args:
-        employee_id (int): The ID of the employee.
-
-    Returns:
-        None
-    """
-    # Get employee details
-    employee_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}"
-    response = requests.get(employee_url)
-    employee_data = response.json()
-    employee_name = employee_data.get('name')
-
-    # Get employee TODO list
-    todo_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}/todos"
-    response = requests.get(todo_url)
-    todo_data = response.json()
-
-    # Create JSON data
-    json_data = {str(employee_id): []}
-    for todo in todo_data:
-        json_data[str(employee_id)].append({
-            "task": todo.get('title'),
-            "completed": todo.get('completed'),
-            "username": employee_name
-        })
-
-    # Export JSON data to file
-    filename = f"{employee_id}.json"
-    with open(filename, 'w') as jsonfile:
-        json.dump(json_data, jsonfile)
-
-    print(f"TODO list exported to {filename}")
-
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python3 export_to_JSON.py <employee_id>")
-        sys.exit(1)
-
-    employee_id = int(sys.argv[1])
-    get_employee_info(employee_id)
+    Retrieve user information (ID and username) using the given employee_id.
     
-    import json
-import requests
-import sys
-
-def get_employee_info(employee_id):
-    """
-    Retrieves employee information and exports their TODO list in JSON format.
-
     Args:
         employee_id (int): The ID of the employee.
-
+        
     Returns:
-        None
+        Tuple[int, str]: A tuple containing the user's ID and username.
     """
-    # Get employee details
-    employee_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}"
-    response = requests.get(employee_url)
-    employee_data = response.json()
-    employee_name = employee_data.get('name')
+    user_response = requests.get(f"https://jsonplaceholder.typicode.com/users/{employee_id}")
+    if user_response.status_code == 200:
+        user_data = user_response.json()
+        return user_data['id'], user_data['username']
+    else:
+        return None, None
 
-    # Get employee TODO list
-    todo_url = f"https://jsonplaceholder.typicode.com/users/{employee_id}/todos"
-    response = requests.get(todo_url)
-    todo_data = response.json()
-
-    # Create JSON data
-    json_data = {str(employee_id): []}
-    for todo in todo_data:
-        json_data[str(employee_id)].append({
-            "task": todo.get('title'),
-            "completed": todo.get('completed'),
-            "username": employee_name
-        })
-
-    # Export JSON data to file
-    filename = f"{employee_id}.json"
-    with open(filename, 'w') as jsonfile:
-        json.dump(json_data, jsonfile)
-
-    print(f"TODO list exported to {filename}")
-
-if __name__ == "__main__":
+def main():
+    """
+    Main function to export user tasks to a JSON file.
+    """
     if len(sys.argv) != 2:
-        print("Usage: python3 export_to_JSON.py <employee_id>")
+        print("Usage: python3 2-export_to_JSON.py <employee_id>")
         sys.exit(1)
 
-    employee_id = int(sys.argv[1])
-    get_employee_info(employee_id)
+    employee_id = sys.argv[1]
+
+    user_id, username = get_user_info(employee_id)
+
+    if user_id is None:
+        print(f"User with ID {employee_id} not found.")
+        sys.exit(1)
+
+    response = requests.get(f"https://jsonplaceholder.typicode.com/todos?userId={employee_id}")
+    tasks = response.json()
+
+    json_data = {user_id: []}
+
+    for task in tasks:
+        task_completed_status = task['completed']
+        task_title = task['title']
+        json_data[user_id].append({"task": task_title, "completed": task_completed_status, "username": username})
+
+    json_filename = f"{user_id}.json"
+
+    with open(json_filename, 'w') as jsonfile:
+        json.dump(json_data, jsonfile, indent=2)
+
+    print(f"Data has been exported to {json_filename}")
+
+if __name__ == "__main__":
+    main()
