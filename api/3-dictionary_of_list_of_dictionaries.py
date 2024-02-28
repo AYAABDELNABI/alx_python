@@ -1,25 +1,23 @@
 import json
-import requests
 
-def get_tasks_by_user(user_id):
-    url = f'https://jsonplaceholder.typicode.com/users/{user_id}/todos'
-    response = requests.get(url)
-    tasks = response.json()
-    return tasks
+def export_all_tasks_to_json(users):
+    data = {}
+    for user in users:
+        user_id = user["id"]
+        username = user["username"]
+        tasks = user["tasks"]
+        if tasks:  # Only record if there are tasks for the user
+            data[user_id] = [{"username": username, "task": task["title"], "completed": task["completed"]} for task in tasks]
 
-def export_to_json():
-    tasks_by_user = {}
-    user_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    filename = "todo_all_employees.json"
+    with open(filename, 'w') as file:
+        json.dump(data, file, indent=4)
 
-    for user_id in user_ids:
-        tasks = get_tasks_by_user(user_id)
-        tasks_by_user[user_id] = [
-            {"username": task["user"]["username"], "task": task["title"], "completed": task["completed"]}
-            for task in tasks
-        ]
+# Example data for multiple users
+users = [
+    {"id": "1", "username": "user1", "tasks": [{"title": "Task 1", "completed": True}, {"title": "Task 2", "completed": False}]},
+    {"id": "2", "username": "user2", "tasks": [{"title": "Task 3", "completed": True}, {"title": "Task 4", "completed": True}]},
+    {"id": "3", "username": "user3", "tasks": []},  # No tasks for this user
+]
 
-    with open('todo_all_employees.json', 'w') as f:
-        json.dump(tasks_by_user, f, indent=4)
-
-if __name__ == '__main__':
-    export_to_json()
+export_all_tasks_to_json(users)
