@@ -7,7 +7,9 @@ def export_all_tasks_to_json(users):
         username = user["username"]
         tasks = user["tasks"]
         if tasks:  # Only record if there are tasks for the user
-            data[user_id] = [{"username": username, "task": task["title"], "completed": task["completed"]} for task in tasks]
+            data[user_id] = {"username": username, "tasks": [{"title": task["title"], "completed": task["completed"]} for task in tasks]}
+        else:
+            data[user_id] = {"username": username, "tasks": []}
 
     filename = "todo_all_employees.json"
     with open(filename, 'w') as file:
