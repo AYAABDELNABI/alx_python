@@ -1,27 +1,26 @@
-import requests
-import sys
+import requests 
+from sys import argv
 
-def getEmployeeAndTodo(id):
-    url = f"https://jsonplaceholder.typicode.com/users/{id}/todos"
-    res = requests.get(url)
-    todos = res.json()
+id = argv[1]
+url1 = f'https://jsonplaceholder.typicode.com/users/{id}/todos'
+empurl= f'https://jsonplaceholder.typicode.com/users/{id}'
 
-    url = f"https://jsonplaceholder.typicode.com/users/{id}"
-    res = requests.get(url)
-    employee = res.json()
+res1 = requests.get(url1)
+data1 = res1.json()
 
-    completed_tasks = sum(1 for todo in todos if todo['completed'])
-    all_tasks = len(todos)
+res2 = requests.get(empurl)
+data2 = res2.json()
 
-    print(f"Employee {employee['name']} is done with tasks({completed_tasks}/{all_tasks}):")
-    for todo in todos:
-        if todo['completed']:
-            print(f"\t {todo['title']}")
+EMPLOYEE_NAME = data2['name']
+NUMBER_OF_DONE_TASKS = 0
+TOTAL_NUMBER_OF_TASKS = len(data1)
+TASK_TITLE = []
 
-if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print(f"what is the id: {sys.argv[0]} EMPLOYEE_ID")
-        sys.exit(1)
+for i in range(TOTAL_NUMBER_OF_TASKS):
+    if(data1[i]['completed'])==True:
+        NUMBER_OF_DONE_TASKS+=1
+        TASK_TITLE.append(data1[i]['title'])
 
-    id = sys.argv[1]
-    getEmployeeAndTodo(id)
+print(f'Employee {EMPLOYEE_NAME} is done with tasks({NUMBER_OF_DONE_TASKS}/{TOTAL_NUMBER_OF_TASKS}):')
+for task in TASK_TITLE:
+    print(f'\t {task}')
